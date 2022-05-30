@@ -9,6 +9,18 @@ import Main from './components/Main.vue'
 
 <template>
   <main>
-    <Main />
+    <div class="center_div">
+      <Main />
+
+    </div>
   </main>
 </template>
+
+<style>
+.center_div {
+  margin: 0 auto;
+  width: 800px;
+  height: 100%;
+
+}
+</style>

@@ -1,6 +1,6 @@
 import type { PRNG } from "seedrandom";
 import { Time } from "tone";
-import { DIMINISHED_CHORD, HARMONIC_MINOR_SCALE, MAJOR_CHORD, MAJOR_SCALE, MAJOR_TONAL_FUNCTIONS, MIDI_FLAT_NAMES, MIDI_NUM_NAMES, MINOR_CHORD, MINOR_TONAL_FUNCTIONS, type MusicActionAbsTime, type MusicActionRelTime, type MusicSound } from "./MusicConstant";
+import { CHORD_PROGRESSION_WHITELIST, DIMINISHED_CHORD, HARMONIC_MINOR_SCALE, MAJOR_CHORD, MAJOR_SCALE, MAJOR_TONAL_FUNCTIONS, MIDI_FLAT_NAMES, MIDI_NUM_NAMES, MINOR_CHORD, MINOR_TONAL_FUNCTIONS, type MusicActionAbsTime, type MusicActionRelTime, type MusicSound } from "./MusicConstant";
 
 export class MusicHelper {
 
@@ -52,6 +52,8 @@ export class MusicHelper {
         })
     }
 
+
+
     static convertToAbsTime(actions: MusicActionRelTime[]): MusicActionAbsTime[] {
         let toneTime = 0;
         const absTimeActions: MusicActionAbsTime[] = [];
@@ -88,20 +90,11 @@ export class MusicHelper {
         })
     }
 
-    static makeRandomTonalFunction(keyNumber: number, isMajor: boolean, rand: PRNG) {
-        const tonalFunctions = isMajor ? MAJOR_TONAL_FUNCTIONS : MINOR_TONAL_FUNCTIONS;
-        const rootNotes = this.formulaToNotes(keyNumber, isMajor ? MAJOR_SCALE : HARMONIC_MINOR_SCALE);
-        return rootNotes.map((n, i) => {
-            const chordType = tonalFunctions[i];
-            if (chordType === 'M') {
-                return this.formulaToNotes(this.noteToNumber(n), this.randomizeChord(MAJOR_CHORD, rand));
-            }
-            if (chordType === 'm') {
-                return this.formulaToNotes(this.noteToNumber(n), this.randomizeChord(MINOR_CHORD, rand));
-            }
-            if (chordType === 'd') {
-                return this.formulaToNotes(this.noteToNumber(n), this.randomizeChord(DIMINISHED_CHORD, rand));
-            }
+    static randomizeTonalFunction(tf: string[][], rand: PRNG) {
+        return tf.map(chord => {
+            const numChord = chord.map(note => this.noteToNumber(note));
+            const randNumChord = this.randomizeChord(numChord, rand).sort()
+            return randNumChord.map(x => this.numberToNote(x))
         })
     }
 
@@ -109,18 +102,47 @@ export class MusicHelper {
 
     static randomizeChord(chrod: number[], rand: PRNG) {
         const addRandomOctiveToNote = (noteNumber: number) => {
-            const randNum = rand.int32();
-            if ((randNum % 3) === 0) {
+            const randNum = Math.abs(rand.int32()) % 3;
+            if (randNum === 0) {
                 return noteNumber // no change
             }
-            if ((randNum % 3) === 1) {
+            if (randNum === 1) {
                 return noteNumber + 12
             }
-            if ((randNum % 3) === 2) {
+            if (randNum === 2) {
                 return noteNumber - 12
             }
+            return null;
         }
         return chrod.map((x, i) => i === 0 ? x : addRandomOctiveToNote(x))
+    }
+
+    static generateChordProgression(basslineNotes: string[], tf: string[][], rand: PRNG) {
+        //each chord should contain the current note of bassline.
+        const rootTf = tf.map(chord => {
+            return chord.map(note => this.noteToNumber(note) % 12)
+        })
+        let lastChord: number;
+        return basslineNotes.map(bNote => {
+            const rootNoteNum = this.noteToNumber(bNote) % 12;
+            const possibleTf: number[] = []
+            rootTf.forEach((rootNums, idx) => {
+                if (rootNums.includes(rootNoteNum)) {
+                    possibleTf.push(idx);
+                }
+            })
+            let filteredPossibleTf = possibleTf.filter(x => x !== 6)
+            if (lastChord) {
+                filteredPossibleTf = filteredPossibleTf.filter(x => CHORD_PROGRESSION_WHITELIST[lastChord].includes(x))
+            }
+
+            // choose a random tf
+            const randomSize = filteredPossibleTf.length;
+            const choice = Math.abs(rand.int32()) % randomSize;
+            lastChord = filteredPossibleTf[choice]
+            return filteredPossibleTf[choice]
+        })
+
     }
 
 }

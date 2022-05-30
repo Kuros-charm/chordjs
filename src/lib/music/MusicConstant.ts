@@ -32,8 +32,8 @@ export const MIDI_FLAT_NAMES = ['C_1', 'Db_1', 'D_1', 'Eb_1', 'Fb_1', 'F_1', 'Gb
     'C8', 'Db8', 'D8', 'Eb8', 'Fb8', 'F8', 'Gb8', 'G8', 'Ab8', 'A8', 'Bb8', 'Cb9',
     'C9', 'Db9', 'D9', 'Eb9', 'Fb9', 'F9', 'Gb9', 'G9'];
 
-export const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11, 12];
-export const HARMONIC_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 11, 12];
+export const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
+export const HARMONIC_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 11];
 
 
 
@@ -47,6 +47,17 @@ export const AUGMENTED_CHORD = [0, 4, 8] //[0, 4, 8]
 
 export const MAJOR_TONAL_FUNCTIONS = ['M', 'm', 'm', 'M', 'M', 'm', 'd']
 export const MINOR_TONAL_FUNCTIONS = ['m', 'd', 'M', 'm', 'm', 'M', 'M']
+
+
+export const CHORD_PROGRESSION_WHITELIST = [
+    [2, 5, 1, 3, 4],
+    [3, 4],
+    [5, 1, 3, 4],
+    [0, 2, 5, 4],
+    [0, 2, 5],
+    [1, 3, 4],
+    []
+]
 
 
 

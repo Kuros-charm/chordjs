@@ -90,32 +90,39 @@ export class MusicHelper {
         })
     }
 
-    static randomizeTonalFunction(tf: string[][], rand: PRNG) {
-        return tf.map(chord => {
-            const numChord = chord.map(note => this.noteToNumber(note));
-            const randNumChord = this.randomizeChord(numChord, rand).sort()
-            return randNumChord.map(x => this.numberToNote(x))
+
+
+
+    static randomChordFilter(size: number, rand: PRNG) {
+        return new Array(size).fill(0).map((n, i) => {
+            const randNum = Math.abs(rand.int32()) % 3;
+            if (i === 0) {
+                return 0
+            }
+            if (randNum === 0) {
+                return 0 // no change
+            }
+            if (randNum === 1) {
+                return 12
+            }
+            if (randNum === 2) {
+                return -12
+            }
         })
     }
 
-
-
-    static randomizeChord(chrod: number[], rand: PRNG) {
-        const addRandomOctiveToNote = (noteNumber: number) => {
-            const randNum = Math.abs(rand.int32()) % 3;
-            if (randNum === 0) {
-                return noteNumber // no change
-            }
-            if (randNum === 1) {
-                return noteNumber + 12
-            }
-            if (randNum === 2) {
-                return noteNumber - 12
-            }
-            return null;
-        }
-        return chrod.map((x, i) => i === 0 ? x : addRandomOctiveToNote(x))
+    static applyChordFilter(chord: number[], chordFilter: number[]) {
+        return chord.map((x, i) => x + (chordFilter[i] ?? 0))
     }
+
+
+
+    static randomizeChord(chord: number[], rand: PRNG) {
+        const chrodFilter = this.randomChordFilter(chord.length, rand);
+        return chord.map((x, i) => x + chrodFilter[i]);
+    }
+
+
 
     static generateChordProgression(basslineNotes: string[], tf: string[][], rand: PRNG) {
         //each chord should contain the current note of bassline.
@@ -134,6 +141,7 @@ export class MusicHelper {
             let filteredPossibleTf = possibleTf.filter(x => x !== 6)
             if (lastChord) {
                 filteredPossibleTf = filteredPossibleTf.filter(x => CHORD_PROGRESSION_WHITELIST[lastChord].includes(x))
+                //filteredPossibleTf = filteredPossibleTf.filter(x => x !== lastChord)
             }
 
             // choose a random tf

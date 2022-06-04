@@ -37,7 +37,7 @@ export const HARMONIC_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 11];
 
 
 
-export const MAJOR_CHORD = [0, 4, 7] // 0 ,4, 7, 11
+export const MAJOR_CHORD = [0, 4, 7] // 0, 4, 7, 10, 13, 16
 export const MINOR_CHORD = [0, 3, 7] // 0 ,3, 7, 11
 
 
@@ -59,6 +59,9 @@ export const CHORD_PROGRESSION_WHITELIST = [
     []
 ]
 
+export const TONIC = 'T';
+export const SUBDOMINANT = 'S';
+export const DOMINANT = 'D'
 
 
 

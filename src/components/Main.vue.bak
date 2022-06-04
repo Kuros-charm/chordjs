@@ -23,7 +23,7 @@ function handleOnNextSeed() {
 }
 
 function handleOnPlay() {
-  const key = 'G3';
+  const key = 'C3';
   const isMajor = true;
   const bassline = [7, 6, 5, 4, 3, 2, 1, 4];
   const rand = seedrandom(randSeed.value);
@@ -37,56 +37,73 @@ function handleOnPlay() {
   const basslineNotes = MusicHelper.formulaToNotes(keyNum - 12, basslineFormula)
 
   let tonalFunction = MusicHelper.makeTonalFunction(keyNum, isMajor);
-  tonalFunction = MusicHelper.randomizeTonalFunction(tonalFunction, rand)
 
-  const chordProgressionFormula = MusicHelper.generateChordProgression(basslineNotes, tonalFunction, rand)
+  let chordProgressionFormula = MusicHelper.generateChordProgression(basslineNotes, tonalFunction, rand)
+  //let chordProgressionFormula = [0, 4, 5, 4, 3, 0, 1, 4]
+
+  // dup it
+  const temp: number[] = []
+  chordProgressionFormula.forEach((n) => {
+    temp.push(n);
+    temp.push(n);
+  })
+  chordProgressionFormula = temp;
 
   chordProgressionText.value = chordProgressionFormula.map(x => x + 1).join(', ')
+  chrodTexts.value = []
 
-  chrodTexts.value = chordProgressionFormula.map(f => {
-    const chord = tonalFunction[f];
-    //const chordNums = chord.map(x => MusicHelper.noteToNumber(x));
-    // firstNum = chordNums[0];
-    //return `${f + 1}: ${chordNums.map(x => x - firstNum).join(', ')}`;
-    return `${f + 1}: ${chord.join(', ')}`;
-  })
-
-
-
-  //const chordProgressionFormula = [0, 4, 5, 0, 3, 0, 1, 4];
+  const randomChordFilter = MusicHelper.randomChordFilter(5, rand);
+  const randomChordFilter2 = MusicHelper.randomChordFilter(5, rand);
 
 
   const musicActions: MusicActionRelTime[] = [];
   chordProgressionFormula.forEach((f, i) => {
 
-    const sortedTonalFunction = [...tonalFunction[f]].sort((a, b) => MusicHelper.noteToNumber(a) - MusicHelper.noteToNumber(b))
 
     // musicActions.push({
     //   sound: MusicHelper.numberToNote(MusicHelper.noteToNumber(sortedTonalFunction[0]) - 12),
     //   length: '4n'
     // })
 
+    let chord = tonalFunction[f];
 
-    // musicActions.push({
-    //   sound: sortedTonalFunction,
-    //   length: '4n'
-    // })
+    let chordNum = chord.map(x => MusicHelper.noteToNumber(x));
+
+    if (i % 2 == 0) {
+      chordNum = chordNum.map((x, i) => x + randomChordFilter[i]);
+
+    } else {
+      chordNum = chordNum.map((x, i) => x + randomChordFilter2[i]);
+    }
+
+    //chordNum = MusicHelper.randomizeChord(chordNum, rand);
+    chordNum = chordNum.sort();
+
+    chord = chordNum.map(MusicHelper.numberToNote);
+
+    chrodTexts.value.push(chord.join(', '))
+
+
     musicActions.push({
-      sound: basslineNotes[i],
+      sound: chord,
       length: '4n'
     })
-    //musicActions.push(1) // delay
+    // musicActions.push({
+    //   sound: basslineNotes[i],
+    //   length: '4n'
+    // })
+    musicActions.push(1) // delay
 
 
 
-    const finger = [0, 1, 2, 1];
-    finger.forEach(fg => {
-      musicActions.push({
-        sound: (sortedTonalFunction)[fg],
-        length: '8n'
-      })
-      musicActions.push(0.25) // delay
-    })
+    // const finger = [0, 1, 2, 1];
+    // finger.forEach(fg => {
+    //   musicActions.push({
+    //     sound: (sortedTonalFunction)[fg],
+    //     length: '8n'
+    //   })
+    //   musicActions.push(0.25) // delay
+    // })
 
 
 

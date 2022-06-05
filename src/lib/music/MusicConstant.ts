@@ -37,8 +37,8 @@ export const HARMONIC_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 11];
 
 
 
-export const MAJOR_CHORD = [0, 4, 7] // 0, 4, 7, 10, 13, 16
-export const MINOR_CHORD = [0, 3, 7] // 0 ,3, 7, 11
+export const MAJOR_CHORD = [0, 7, 12, 16] // 0, 4, 7, 10, 13, 16
+export const MINOR_CHORD = [0, 7, 12, 15] // 0 ,3, 7, 11
 
 
 export const DIMINISHED_CHORD = [0, 3, 6] //[0, 3, 6]

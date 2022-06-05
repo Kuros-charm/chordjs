@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { MAJOR_CHORD, MAJOR_SCALE, MINOR_CHORD, TF_CLASS, type MusicActionRelTime } from '@/lib/music/MusicConstant';
+import { MAJOR_CHORD, MAJOR_SCALE, MIDI_NUM_NAMES, MINOR_CHORD, TF_CLASS, type MusicActionRelTime } from '@/lib/music/MusicConstant';
 import { MusicHelper } from '@/lib/music/MusicHelper';
 import { MusicPlayer } from '@/lib/music/MusicPlayer';
 import { computed, ref, watch } from 'vue';
@@ -8,9 +8,7 @@ import seedrandom, { type PRNG } from 'seedrandom';
 import ChordInput from './ChordInput.vue';
 import { deepClone } from '@/lib/common';
 
-
-
-function newChordInput(): {
+type ChordInput = {
     tf: string;
     tfClass: TF_CLASS | 'RNG';
     chordFilters: string[];
@@ -37,7 +35,9 @@ function newChordInput(): {
         chordFormula: number[];
         id: number;
     }
-} {
+
+}
+function newChordInput(): ChordInput {
     return {
         tf: 'RNG',
         chordFilters: ['0', 'RNG', 'RNG'],
@@ -107,11 +107,11 @@ function filterChord(chordInputIdx: number) {
         if (tfClass && tfClass !== 'RNG' && tfClass !== c.tfClass) return false;
         if (tf && tf !== 'RNG' && parseInt(tf) !== c.tf) return false;
         if (chordFilters && chordFilters.find((x, i) => x !== 'RNG' && c.chordFilters[i] !== parseInt(x))) return false
-        if (noteFilter && !c.chord.find(x => x.includes(noteFilter))) return false
+        if (noteFilter && !c.chord.find(x => MusicHelper.noteNumToKey(MusicHelper.noteToNumber(x)) === noteFilter)) return false
 
-        // some special pref rules
-        if (c.tf >= 5 && c.chordFilters.find(x => x === 12)) return false // prevent high notes getting higher
-        if (c.tf <= 3 && c.chordFilters.find(x => x === -12)) return false // prevent low notes getting lower
+        // // some special pref rules
+        // if (c.tf >= 5 && c.chordFilters.find(x => x === 12)) return false // prevent high notes getting higher
+        // if (c.tf <= 3 && c.chordFilters.find(x => x === -12)) return false // prevent low notes getting lower
 
 
         return true;
@@ -153,6 +153,41 @@ function selectRandomChord(idx: number, rand: PRNG) {
     ci.chordValue = ci.randomSelectedChord.chord;
 }
 
+function getMusicAction(c: ChordInput) {
+    const ma: MusicActionRelTime[] = [];
+    if (c.noteFilter && keyNote.value) {
+        const keyNum = MusicHelper.noteToNumber(keyNote.value)
+        // find x note lower then key note
+        const baseNote = MIDI_NUM_NAMES.filter((x, i) => MusicHelper.noteNumToKey(i) === c.noteFilter && i < (keyNum));
+        if (baseNote.length) {
+            ma.push(
+                {
+                    sound: baseNote[baseNote.length - 1],
+                    length: '4n'
+                }
+            )
+        }
+    }
+    if (c.chordValue) {
+        ma.push(
+            {
+                sound: c.chordValue,
+                length: '4n'
+            }
+        )
+        // ma.push(1);
+        // ma.push(
+        //     {
+        //         sound: c.chordValue.sort((a, b) => MusicHelper.noteToNumber(a) - MusicHelper.noteToNumber(b))[0],
+        //         length: '4n'
+        //     }
+        // )
+    }
+
+    return ma
+
+}
+
 
 function playOneChord(idx: number) {
     handleOnStop();
@@ -164,10 +199,7 @@ function playOneChord(idx: number) {
     }
     if (chordInput.chordValue?.length) {
         player = new MusicPlayer(100);
-        player.play(MusicHelper.convertToAbsTime([{
-            sound: chordInput.chordValue,
-            length: '4n'
-        }]));
+        player.play(MusicHelper.convertToAbsTime(getMusicAction(chordInput)));
 
     }
 }
@@ -181,15 +213,7 @@ function handleOnPlay() {
         if (!c.isOverrideChordValue) {
             selectRandomChord(i, rand);
         }
-        if (c.chordValue) {
-            ma.push(
-                {
-                    sound: c.chordValue,
-                    length: '4n'
-                }
-            )
-        }
-
+        ma.push(...getMusicAction(c))
         ma.push(1)
     });
 

@@ -12,7 +12,8 @@
         "./src/*"
       ]
     },
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "importsNotUsedAsValues": "preserve"
   },
   "references": [
     {

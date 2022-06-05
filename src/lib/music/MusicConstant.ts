@@ -59,9 +59,23 @@ export const CHORD_PROGRESSION_WHITELIST = [
     []
 ]
 
-export const TONIC = 'T';
-export const SUBDOMINANT = 'S';
-export const DOMINANT = 'D'
+export enum TF_CLASS {
+    TONIC = 'T',
+    SUBDOMINANT = 'S',
+    DOMINANT = 'D'
+}
+export const TF_CLASS_MAP = {
+    [TF_CLASS.TONIC]: [
+        0, 2, 5
+    ],
+    [TF_CLASS.SUBDOMINANT]: [
+        1, 3
+    ],
+    [TF_CLASS.DOMINANT]: [
+        4, 6
+    ]
+}
 
+// TODO: https://www.earmaster.com/music-theory-online/ch05/chapter-5-3.html
 
 

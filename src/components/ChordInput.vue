@@ -146,12 +146,15 @@ const computedTfClassOpt = computed(() => {
 
 const computedNoteFilterOpt = computed(() => {
     if (props.keyNote) {
-        return MusicHelper.formulaToNoteNum(MusicHelper.noteToNumber(props.keyNote), MAJOR_SCALE).map((noteNum, i) => {
+        return [{
+            value: '',
+            description: ''
+        }, ...MusicHelper.formulaToNoteNum(MusicHelper.noteToNumber(props.keyNote), MAJOR_SCALE).map((noteNum, i) => {
             return {
                 value: MusicHelper.noteNumToKey(noteNum),
                 description: `${MusicHelper.noteNumToKey(noteNum)} (${i + 1})`
             }
-        }).filter(x => props.filteredChords.find(c => c.chord.find(cc => cc.includes(x.value))))
+        }).filter(x => props.filteredChords.find(c => c.chord.find(cc => cc.includes(x.value))))]
     }
     return []
 })

@@ -108,6 +108,12 @@ function filterChord(chordInputIdx: number) {
         if (tf && tf !== 'RNG' && parseInt(tf) !== c.tf) return false;
         if (chordFilters && chordFilters.find((x, i) => x !== 'RNG' && c.chordFilters[i] !== parseInt(x))) return false
         if (noteFilter && !c.chord.find(x => x.includes(noteFilter))) return false
+
+        // some special pref rules
+        if (c.tf >= 5 && c.chordFilters.find(x => x === 12)) return false // prevent high notes getting higher
+        if (c.tf <= 3 && c.chordFilters.find(x => x === -12)) return false // prevent low notes getting lower
+
+
         return true;
     })
 
@@ -149,6 +155,8 @@ function selectRandomChord(idx: number, rand: PRNG) {
 
 
 function playOneChord(idx: number) {
+    handleOnStop();
+
     const rand = seedrandom(randSeed.value + idx.toString());
     const chordInput = chordInputs.value[idx];
     if (!chordInput.isOverrideChordValue) {
@@ -165,6 +173,7 @@ function playOneChord(idx: number) {
 }
 
 function handleOnPlay() {
+    handleOnStop();
     const ma: MusicActionRelTime[] = []
     chordInputs.value.forEach((c, i) => {
 

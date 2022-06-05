@@ -15,6 +15,9 @@ function newChordInput(): {
     tfClass: TF_CLASS | 'RNG';
     chordFilters: string[];
     chordValue: string[];
+    isOverrideChordValue: boolean;
+
+    noteFilter: string;
 
 
 
@@ -40,8 +43,9 @@ function newChordInput(): {
         chordFilters: ['0', 'RNG', 'RNG'],
         chordValue: [],
         tfClass: 'RNG',
-        filteredChords: []
-
+        filteredChords: [],
+        isOverrideChordValue: false,
+        noteFilter: ''
 
     }
 }
@@ -95,6 +99,7 @@ function filterChord(chordInputIdx: number) {
         tfClass,
         tf,
         chordFilters,
+        noteFilter,
         chordValue
     } = chordInputs.value[chordInputIdx];
 
@@ -102,6 +107,7 @@ function filterChord(chordInputIdx: number) {
         if (tfClass && tfClass !== 'RNG' && tfClass !== c.tfClass) return false;
         if (tf && tf !== 'RNG' && parseInt(tf) !== c.tf) return false;
         if (chordFilters && chordFilters.find((x, i) => x !== 'RNG' && c.chordFilters[i] !== parseInt(x))) return false
+        if (noteFilter && !c.chord.find(x => x.includes(noteFilter))) return false
         return true;
     })
 
@@ -114,10 +120,18 @@ const computeChordInputs = computed(() => {
     return chordInputs.value.map((x, i) => {
         const filteredChords = filterChord(i);
         x.filteredChords = [...filteredChords];
-        if (filteredChords.length === 1) {
-            x.randomSelectedChord = filteredChords[0];
-            x.chordValue = x.randomSelectedChord.chord
+        if (!x.isOverrideChordValue) {
+            if (filteredChords.length === 1) {
+                x.randomSelectedChord = filteredChords[0];
+                x.chordValue = x.randomSelectedChord.chord
+            }
+            if (filteredChords.length === 0) {
+                x.randomSelectedChord = null;
+                x.chordValue = []
+            }
+
         }
+
         return x
     });
 })
@@ -136,14 +150,15 @@ function selectRandomChord(idx: number, rand: PRNG) {
 
 function playOneChord(idx: number) {
     const rand = seedrandom(randSeed.value + idx.toString());
-    selectRandomChord(idx, rand);
-
     const chordInput = chordInputs.value[idx];
-    if (chordInput.randomSelectedChord) {
+    if (!chordInput.isOverrideChordValue) {
+        selectRandomChord(idx, rand);
+    }
+    if (chordInput.chordValue?.length) {
         player = new MusicPlayer(100);
         player.play(MusicHelper.convertToAbsTime([{
-            sound: chordInput.randomSelectedChord.chord,
-            length: '8n'
+            sound: chordInput.chordValue,
+            length: '4n'
         }]));
 
     }
@@ -152,13 +167,16 @@ function playOneChord(idx: number) {
 function handleOnPlay() {
     const ma: MusicActionRelTime[] = []
     chordInputs.value.forEach((c, i) => {
+
         const rand = seedrandom(randSeed.value + i.toString());
-        selectRandomChord(i, rand);
+        if (!c.isOverrideChordValue) {
+            selectRandomChord(i, rand);
+        }
         if (c.chordValue) {
             ma.push(
                 {
                     sound: c.chordValue,
-                    length: '8n'
+                    length: '4n'
                 }
             )
         }
@@ -182,7 +200,9 @@ function handleAddRow() {
 }
 
 function handleDeleteRow(idx: number) {
-    chordInputs.value.splice(idx, 1)
+    if (chordInputs.value.length > 1) {
+        chordInputs.value.splice(idx, 1)
+    }
 }
 
 function handleCopyRow(idx: number) {
@@ -197,6 +217,13 @@ function handleResetRow(idx: number) {
     chordInputs.value.splice(idx, 1, newChordInput())
 }
 
+function updateOverrideChordValue(idx: number, value: string[]) {
+    const changed = chordInputs.value[idx].chordValue.join(',') !== value.join(',')
+    chordInputs.value[idx].isOverrideChordValue = (value?.length && changed) ? true : false; // reset flag if empty
+    chordInputs.value[idx].chordValue = value
+}
+
+
 </script>
 
 <template>
@@ -208,11 +235,12 @@ function handleResetRow(idx: number) {
 
     </div>
     <div class="container">
-        <ChordInput v-for="(item, i) in computeChordInputs" :filtered-chords="item.filteredChords" v-model:tf="item.tf"
-            v-model:chord-filters="item.chordFilters" v-model:chord-value="item.chordValue"
-            v-model:tf-class="item.tfClass" @click:copy="handleCopyRow(i)" @click:play="playOneChord(i)"
-            @click:reset="handleResetRow(i)" @click:delete="handleDeleteRow(i)"
-            :random-selected-chord="item.randomSelectedChord">
+        <ChordInput v-for="(item, i) in computeChordInputs" :key-note="keyNote" :filtered-chords="item.filteredChords"
+            v-model:tf="item.tf" v-model:chord-filters="item.chordFilters" v-model:tf-class="item.tfClass"
+            v-model:note-filter="item.noteFilter" @click:copy="handleCopyRow(i)" @click:play="playOneChord(i)"
+            @click:reset="handleResetRow(i)" @click:delete="handleDeleteRow(i)" :chord-value="item.chordValue"
+            @update:chord-value="updateOverrideChordValue(i, $event)" :random-selected-chord="item.randomSelectedChord"
+            :is-override-chord-value="item.isOverrideChordValue">
 
         </ChordInput>
 

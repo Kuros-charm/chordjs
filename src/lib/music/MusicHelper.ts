@@ -4,6 +4,10 @@ import { CHORD_PROGRESSION_WHITELIST, DIMINISHED_CHORD, HARMONIC_MINOR_SCALE, MA
 
 export class MusicHelper {
 
+    static noteNumToKey(noteNum: number) {
+        return this.numberToNote(noteNum).replace(/[0-9]/g, '')
+    }
+
     static noteToNumber(note: string) {
         let result = MIDI_NUM_NAMES.indexOf(note);
         if (result === -1) {
